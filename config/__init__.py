@@ -1,0 +1,1 @@
+# SMEHUB Django Configuration Package

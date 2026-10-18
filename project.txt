@@ -1,0 +1,59 @@
+SMEHUB MVP – Project Brief
+Overview
+SMEHUB is a business payment platform designed to help small and medium-sized businesses accept and track digital payments through Stellar.
+The MVP focuses on a simple merchant payment acceptance experience.
+Sprint Goal
+Build a functional Stellar Testnet merchant payment platform where businesses can generate payment requests, receive USDC Testnet payments, and track transactions.
+Core Features
+1. Merchant Registration
+Create a business profile
+Connect a Stellar Testnet wallet
+Configure business payment details
+View merchant wallet information
+2. Merchant Dashboard
+View payment activity
+Track completed and pending payments
+View transaction history
+Access individual payment records
+3. Payment Request Generation
+Enter payment amount
+Select USDC Testnet
+Generate a payment request
+Display a payment QR code or payment link
+4. Customer Checkout
+Open a merchant payment request
+Review merchant and amount
+Connect a Stellar wallet
+Approve the payment
+Receive payment confirmation
+5. Transaction Tracking
+Monitor payment status
+Match payments to requests
+Display successful and failed transactions
+Provide Stellar Testnet transaction hashes
+Key Screens for Design
+Merchant Registration
+Wallet Connection
+Merchant Dashboard
+Create Payment Request
+QR Code / Payment Link
+Customer Checkout
+Payment Confirmation
+Transaction History
+Technical Requirements
+Stellar Testnet
+USDC Testnet
+Non-custodial wallet integration
+Payment request generation
+Transaction monitoring
+Merchant payment records
+Definition of Done
+Merchant can create a profile
+Merchant can connect a wallet
+Merchant can generate a payment request
+Customer can open the request
+Customer can approve a USDC Testnet payment
+Merchant can view payment confirmation
+Transactions are verifiable on Stellar Testnet
+Demo walkthrough 
+Test transaction hash links. 

@@ -1,0 +1,2318 @@
+openapi: 3.0.3
+info:
+  title: SMEHUB - Stellar Merchant Payment Platform API
+  version: 1.0.0
+  description: 'Production-grade RESTful API for SMEHUB: Enabling small and medium
+    businesses to accept, settle, and track digital payments via Stellar Testnet (USDC
+    / XLM) and Soroban Smart Contracts.'
+paths:
+  /api/analytics/charts/volume/:
+    get:
+      operationId: api_analytics_charts_volume_retrieve
+      description: Returns daily aggregated payment volume and count for the past
+        7, 14, or 30 days.
+      summary: Get daily payment volume time-series chart data
+      parameters:
+      - in: query
+        name: days
+        schema:
+          type: integer
+        description: Number of days to look back (default 14, max 90)
+      tags:
+      - Analytics
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyVolumeChartResponse'
+          description: ''
+  /api/analytics/dashboard/:
+    get:
+      operationId: api_analytics_dashboard_retrieve
+      description: 'Returns complete merchant dashboard summary: total USDC and XLM
+        volume, counts of completed/pending/expired payments, conversion rate, wallet
+        status, and recent activity.'
+      summary: Get merchant dashboard metrics
+      tags:
+      - Analytics
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetricsResponse'
+          description: ''
+  /api/contracts/info/:
+    get:
+      operationId: api_contracts_info_retrieve
+      description: Returns Stellar Soroban payment router contract ID, methods, and
+        EVM contract details.
+      summary: Get Smart Contract metadata and interface
+      tags:
+      - Contracts
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractInfoResponse'
+          description: ''
+  /api/contracts/soroban/build-pay/:
+    post:
+      operationId: api_contracts_soroban_build_pay_create
+      description: Constructs the Soroban smart contract call parameters for client-side
+        wallet signing.
+      summary: Build Soroban payment invocation arguments
+      tags:
+      - Contracts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SorobanPayInvocationRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SorobanPayInvocationRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SorobanPayInvocationRequestRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractInvocationResponse'
+          description: ''
+  /api/docs/openai-tools/:
+    get:
+      operationId: api_docs_openai_tools_retrieve
+      description: Returns OpenAI-compatible function calling tool schemas for AI
+        assistant integration with SMEHUB.
+      summary: OpenAI Function Calling / Tool Definitions
+      tags:
+      - System
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenAIToolsResponse'
+          description: ''
+  /api/health/:
+    get:
+      operationId: api_health_retrieve
+      description: Returns operational status of the SMEHUB Stellar backend API.
+      summary: API health and readiness check
+      tags:
+      - System
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+          description: ''
+  /api/merchants/api-key/refresh/:
+    post:
+      operationId: merchant_refresh_api_key
+      description: Revokes existing API key and issues a newly generated secure API
+        key for the merchant.
+      summary: Regenerate merchant API key
+      tags:
+      - Merchants
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyRefreshResponse'
+          description: ''
+  /api/merchants/login/:
+    post:
+      operationId: api_merchants_login_create
+      description: Log in with merchant username or email and password to receive
+        an authentication token.
+      summary: Authenticate merchant and obtain auth token
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantLoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantLoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantLoginRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantLoginResponse'
+          description: ''
+        '401':
+          description: Invalid credentials
+  /api/merchants/login/wallet/:
+    post:
+      operationId: api_merchants_login_wallet_create
+      description: Log in using connected Stellar Testnet public key. Optionally auto-creates
+        account if auto_register is True.
+      summary: Authenticate merchant via Stellar wallet
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletAuthRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletAuthRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletAuthRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantWalletLoginResponse'
+          description: ''
+        '404':
+          description: Wallet not registered as a merchant
+  /api/merchants/profile/:
+    get:
+      operationId: api_merchants_profile_retrieve
+      description: Retrieve or update the authenticated merchant business details,
+        contact info, and payment settings.
+      summary: Get or update merchant profile
+      tags:
+      - Merchants
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantProfileResponse'
+          description: ''
+    put:
+      operationId: api_merchants_profile_update
+      description: Retrieve or update the authenticated merchant business details,
+        contact info, and payment settings.
+      summary: Get or update merchant profile
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantProfileRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantProfileResponse'
+          description: ''
+    patch:
+      operationId: api_merchants_profile_partial_update
+      description: Retrieve or update the authenticated merchant business details,
+        contact info, and payment settings.
+      summary: Get or update merchant profile
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchantProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchantProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchantProfileRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantProfileResponse'
+          description: ''
+  /api/merchants/register/:
+    post:
+      operationId: api_merchants_register_create
+      description: Creates a new SME merchant account, business profile, API key,
+        and optionally connects a Stellar Testnet wallet.
+      summary: Register a new merchant business profile
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantRegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantRegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantRegisterRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantRegisterResponse'
+          description: ''
+        '400':
+          description: Validation error
+  /api/merchants/register/wallet/:
+    post:
+      operationId: api_merchants_register_wallet_create
+      description: Instant merchant onboarding using Stellar Testnet wallet. Skips
+        profile form filling, allowing merchants to configure business details later
+        in Settings.
+      summary: Register or quick-onboard via Stellar wallet
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletAuthRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletAuthRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletAuthRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantWalletAuthResponse'
+          description: ''
+        '400':
+          description: Invalid public key format
+  /api/merchants/wallet/:
+    get:
+      operationId: api_merchants_wallet_retrieve
+      description: Fetches live Testnet XLM and USDC balances directly from the Stellar
+        Horizon network for the merchant wallet.
+      summary: View merchant wallet info and live Stellar balances
+      tags:
+      - Merchants
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletLiveInfoResponse'
+          description: ''
+  /api/merchants/wallet/connect/:
+    post:
+      operationId: api_merchants_wallet_connect_create
+      description: Connect a non-custodial Stellar wallet (Freighter, Albedo, Lobstr)
+        to receive customer payments.
+      summary: Connect or update Stellar Testnet wallet
+      tags:
+      - Merchants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletConnectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletConnectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantWalletConnectRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletConnectResponse'
+          description: ''
+        '400':
+          description: Invalid public key or wallet already associated
+  /api/payments/checkout/{reference_id}/:
+    get:
+      operationId: api_payments_checkout_retrieve
+      description: Public endpoint for customers to review merchant details, amount,
+        USDC Testnet asset, memo, and receive SEP-0007 / QR code payload.
+      summary: Public customer checkout view
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Checkout
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerCheckoutResponse'
+          description: ''
+        '404':
+          description: Invoice not found
+  /api/payments/requests/:
+    get:
+      operationId: merchant_list_payment_requests
+      description: Returns a list of all payment requests generated by the authenticated
+        merchant, with optional status filter.
+      summary: List merchant payment requests
+      parameters:
+      - in: query
+        name: currency
+        schema:
+          type: string
+        description: 'Filter by currency: USDC, XLM'
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: 'Filter by status: PENDING, COMPLETED, EXPIRED, CANCELLED'
+      tags:
+      - Payments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentListResponse'
+          description: ''
+  /api/payments/requests/{reference_id}/:
+    get:
+      operationId: merchant_get_or_update_payment_request_detail
+      description: Retrieve or update detailed information of a specific payment request
+        by reference ID.
+      summary: Get or edit payment request details
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Payments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetailResponse'
+          description: ''
+        '400':
+          description: Validation error
+        '404':
+          description: Payment request not found
+    put:
+      operationId: merchant_get_or_update_payment_request_detail_3
+      description: Retrieve or update detailed information of a specific payment request
+        by reference ID.
+      summary: Get or edit payment request details
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestUpdateRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetailResponse'
+          description: ''
+        '400':
+          description: Validation error
+        '404':
+          description: Payment request not found
+    patch:
+      operationId: merchant_get_or_update_payment_request_detail_2
+      description: Retrieve or update detailed information of a specific payment request
+        by reference ID.
+      summary: Get or edit payment request details
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentRequestUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentRequestUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentRequestUpdateRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetailResponse'
+          description: ''
+        '400':
+          description: Validation error
+        '404':
+          description: Payment request not found
+  /api/payments/requests/{reference_id}/cancel/:
+    post:
+      operationId: merchant_cancel_payment_request
+      description: Cancel an unpaid payment request before it expires or is settled.
+      summary: Cancel a pending payment request
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Payments
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCancelResponse'
+          description: ''
+  /api/payments/requests/create/:
+    post:
+      operationId: api_payments_requests_create_create
+      description: Generates a new payment request with amount, USDC Testnet/XLM,
+        unique memo, SEP-0007 URI, and QR code for customer checkout.
+      summary: Generate a new payment request / invoice
+      tags:
+      - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestCreateRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCreateResponse'
+          description: ''
+        '400':
+          description: Validation error or wallet not connected
+  /api/transactions/:
+    get:
+      operationId: merchant_list_transactions
+      description: Returns transaction history for the authenticated merchant with
+        explorer links, ledger numbers, and settlement timestamps.
+      summary: List merchant transaction history
+      parameters:
+      - in: query
+        name: asset_code
+        schema:
+          type: string
+        description: 'Filter by asset code: USDC, XLM'
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: 'Filter by status: SUCCESS, FAILED'
+      tags:
+      - Transactions
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionListResponse'
+          description: ''
+  /api/transactions/{tx_hash}/:
+    get:
+      operationId: merchant_get_transaction_detail
+      description: Retrieve full on-chain transaction details, Stellar Expert explorer
+        link, and ledger metadata.
+      summary: Get transaction details by hash
+      parameters:
+      - in: path
+        name: tx_hash
+        schema:
+          type: string
+        required: true
+      tags:
+      - Transactions
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionDetailResponse'
+          description: ''
+        '404':
+          description: Transaction not found
+  /api/transactions/broadcast/{reference_id}/:
+    post:
+      operationId: api_transactions_broadcast_create
+      description: Submits a signed transaction XDR to Stellar Horizon, executing
+        payment and recording settlement.
+      summary: Broadcast signed Stellar transaction XDR
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Checkout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionBroadcastRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransactionBroadcastRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransactionBroadcastRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionBroadcastResponse'
+          description: ''
+  /api/transactions/prepare/{reference_id}/:
+    post:
+      operationId: api_transactions_prepare_create
+      description: Constructs an unsigned Stellar transaction XDR for client-side
+        wallet signing.
+      summary: Prepare unsigned Stellar transaction XDR
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Checkout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionPrepareRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransactionPrepareRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransactionPrepareRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionPrepareResponse'
+          description: ''
+  /api/transactions/status/{reference_id}/:
+    get:
+      operationId: api_transactions_status_retrieve
+      description: Poll endpoint used by checkout screen and merchant dashboard to
+        check whether a payment request has been confirmed on the Stellar ledger.
+      summary: Poll real-time payment status
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Checkout
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatusResponse'
+          description: ''
+  /api/transactions/verify/{reference_id}/:
+    post:
+      operationId: api_transactions_verify_create
+      description: Submits a 64-character Stellar transaction hash for a payment request.
+        Verifies on-chain execution via Stellar Horizon, matches destination, amount,
+        and memo, and confirms payment.
+      summary: Submit and verify Stellar Testnet transaction
+      parameters:
+      - in: path
+        name: reference_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Transactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransactionSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransactionSubmitRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionVerifyResponse'
+          description: ''
+        '400':
+          description: Verification failed or invalid hash
+  /health/:
+    get:
+      operationId: health_retrieve
+      description: Returns operational status of the SMEHUB Stellar backend API.
+      summary: API health and readiness check
+      tags:
+      - System
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+          description: ''
+components:
+  schemas:
+    ApiKeyRefreshResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        api_key:
+          type: string
+      required:
+      - api_key
+      - message
+    BlockchainTransactionStatusEnum:
+      enum:
+      - SUCCESS
+      - FAILED
+      - PENDING_CONFIRMATION
+      type: string
+      description: |-
+        * `SUCCESS` - Confirmed on Ledger
+        * `FAILED` - Failed on Ledger
+        * `PENDING_CONFIRMATION` - Awaiting Ledger Ingestion
+    ContractInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/SorobanContractInfo'
+      required:
+      - data
+    ContractInvocationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/SorobanPayInvocationResponse'
+      required:
+      - data
+    CurrencyEnum:
+      enum:
+      - USDC
+      - XLM
+      type: string
+      description: |-
+        * `USDC` - USD Coin (Stellar Testnet)
+        * `XLM` - Stellar Lumens (Native)
+    CustomerCheckoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/PublicCheckout'
+      required:
+      - data
+    DailyVolume:
+      type: object
+      properties:
+        date:
+          type: string
+        usdc_volume:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+        xlm_volume:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+        count:
+          type: integer
+      required:
+      - count
+      - date
+      - usdc_volume
+      - xlm_volume
+    DailyVolumeChartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        days:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyVolume'
+      required:
+      - data
+      - days
+    DashboardMetrics:
+      type: object
+      properties:
+        business_name:
+          type: string
+        wallet_connected:
+          type: boolean
+        wallet_public_key:
+          type: string
+          nullable: true
+        wallet_verified:
+          type: boolean
+        total_volume_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+        total_volume_xlm:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+        completed_payments_count:
+          type: integer
+        pending_payments_count:
+          type: integer
+        expired_payments_count:
+          type: integer
+        cancelled_payments_count:
+          type: integer
+        total_requests_count:
+          type: integer
+        conversion_rate:
+          type: number
+          format: double
+        recent_activity:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentActivityItem'
+      required:
+      - business_name
+      - cancelled_payments_count
+      - completed_payments_count
+      - conversion_rate
+      - expired_payments_count
+      - pending_payments_count
+      - recent_activity
+      - total_requests_count
+      - total_volume_usdc
+      - total_volume_xlm
+      - wallet_connected
+      - wallet_public_key
+      - wallet_verified
+    DashboardMetricsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/DashboardMetrics'
+      required:
+      - data
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+        network:
+          type: string
+        version:
+          type: string
+      required:
+      - network
+      - service
+      - status
+      - version
+    MerchantLoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Username or registered email
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
+    MerchantLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        token:
+          type: string
+        merchant:
+          $ref: '#/components/schemas/MerchantProfile'
+      required:
+      - merchant
+      - token
+    MerchantProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        business_name:
+          type: string
+          maxLength: 255
+        business_email:
+          type: string
+          format: email
+          maxLength: 254
+        category:
+          type: string
+          default: OTHER
+          description: 'Business category choices: RETAIL, SERVICES, DIGITAL, FOOD_BEV,
+            TECH, OTHER'
+        description:
+          type: string
+        support_email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone_number:
+          type: string
+          maxLength: 50
+        website_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        webhook_url:
+          nullable: true
+          description: Webhook endpoint to receive transaction notifications
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        api_key:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+        wallet:
+          allOf:
+          - $ref: '#/components/schemas/MerchantWallet'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - api_key
+      - business_email
+      - business_name
+      - created_at
+      - id
+      - updated_at
+      - wallet
+    MerchantProfileRequest:
+      type: object
+      properties:
+        business_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        business_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        category:
+          type: string
+          minLength: 1
+          default: OTHER
+          description: 'Business category choices: RETAIL, SERVICES, DIGITAL, FOOD_BEV,
+            TECH, OTHER'
+        description:
+          type: string
+        support_email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone_number:
+          type: string
+          maxLength: 50
+        website_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        webhook_url:
+          nullable: true
+          description: Webhook endpoint to receive transaction notifications
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+      required:
+      - business_email
+      - business_name
+    MerchantProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/MerchantProfile'
+      required:
+      - data
+    MerchantRegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        business_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        category:
+          type: string
+          minLength: 1
+          default: OTHER
+          description: 'Business category choices: RETAIL, SERVICES, DIGITAL, FOOD_BEV,
+            TECH, OTHER'
+        description:
+          type: string
+          default: ''
+        phone_number:
+          type: string
+          default: ''
+        stellar_public_key:
+          type: string
+          maxLength: 56
+        wallet_provider:
+          type: string
+          minLength: 1
+          default: Freighter
+      required:
+      - business_name
+      - email
+      - password
+      - username
+    MerchantRegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/MerchantProfile'
+        token:
+          type: string
+      required:
+      - data
+      - message
+      - token
+    MerchantWallet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        public_key:
+          type: string
+          description: Stellar G... public key
+          maxLength: 56
+        wallet_provider:
+          type: string
+          description: e.g. Freighter, Albedo, Lobstr, Custom
+          maxLength: 50
+        network:
+          type: string
+          maxLength: 20
+        is_verified:
+          type: boolean
+          readOnly: true
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_synced_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_verified
+      - last_synced_at
+      - public_key
+      - verified_at
+    MerchantWalletAuthRequest:
+      type: object
+      properties:
+        public_key:
+          type: string
+          minLength: 1
+          description: Stellar Testnet 56-character Ed25519 public key (starts with
+            'G')
+          maxLength: 56
+        wallet_provider:
+          type: string
+          minLength: 1
+          default: Freighter
+          description: Name of wallet provider (Freighter, Albedo, Lobstr, TestnetKeypair)
+          maxLength: 50
+        auto_register:
+          type: boolean
+          default: false
+          description: If true and no merchant profile exists, auto-registers a profile
+            skipping form fields
+      required:
+      - public_key
+    MerchantWalletAuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        token:
+          type: string
+        merchant:
+          $ref: '#/components/schemas/MerchantProfile'
+        is_new:
+          type: boolean
+      required:
+      - is_new
+      - merchant
+      - message
+      - token
+    MerchantWalletConnectRequest:
+      type: object
+      properties:
+        public_key:
+          type: string
+          minLength: 1
+          description: Stellar Testnet 56-character public key (starts with 'G')
+          maxLength: 56
+        wallet_provider:
+          type: string
+          minLength: 1
+          default: Freighter
+          description: Name of non-custodial wallet provider, e.g. Freighter, Lobstr,
+            Albedo
+          maxLength: 50
+      required:
+      - public_key
+    MerchantWalletLiveInfo:
+      type: object
+      properties:
+        public_key:
+          type: string
+        network:
+          type: string
+        wallet_provider:
+          type: string
+        is_funded:
+          type: boolean
+        xlm_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,7})?$
+        usdc_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,13}(?:\.\d{0,7})?$
+        balances:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - balances
+      - is_funded
+      - network
+      - public_key
+      - usdc_balance
+      - wallet_provider
+      - xlm_balance
+    MerchantWalletLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        token:
+          type: string
+        merchant:
+          $ref: '#/components/schemas/MerchantProfile'
+        is_new:
+          type: boolean
+      required:
+      - is_new
+      - merchant
+      - message
+      - token
+    MerchantWalletRequest:
+      type: object
+      properties:
+        public_key:
+          type: string
+          minLength: 1
+          description: Stellar G... public key
+          maxLength: 56
+        wallet_provider:
+          type: string
+          minLength: 1
+          description: e.g. Freighter, Albedo, Lobstr, Custom
+          maxLength: 50
+        network:
+          type: string
+          minLength: 1
+          maxLength: 20
+      required:
+      - public_key
+    OpenAIToolsResponse:
+      type: object
+      properties:
+        tools:
+          type: array
+          items: {}
+        system_prompt:
+          type: string
+      required:
+      - system_prompt
+      - tools
+    PatchedMerchantProfileRequest:
+      type: object
+      properties:
+        business_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        business_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        category:
+          type: string
+          minLength: 1
+          default: OTHER
+          description: 'Business category choices: RETAIL, SERVICES, DIGITAL, FOOD_BEV,
+            TECH, OTHER'
+        description:
+          type: string
+        support_email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        phone_number:
+          type: string
+          maxLength: 50
+        website_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        webhook_url:
+          nullable: true
+          description: Webhook endpoint to receive transaction notifications
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+    PatchedPaymentRequestUpdateRequest:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+          description: Updated payment amount
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Updated payment currency: USDC or XLM
+
+            * `USDC` - USD Coin (Stellar Testnet)
+            * `XLM` - Stellar Lumens (Native)
+        order_reference:
+          type: string
+          description: Updated order reference
+          maxLength: 32
+        orders:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Updated list of order choices
+        title:
+          type: string
+          minLength: 1
+          description: Updated title or invoice identifier
+          maxLength: 255
+        description:
+          type: string
+          description: Updated description
+        customer_name:
+          type: string
+          description: Updated customer name
+        customer_email:
+          nullable: true
+          description: Updated customer email
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          description: |-
+            Updated status: PENDING, COMPLETED, EXPIRED, CANCELLED, FAILED
+
+            * `PENDING` - Pending Payment
+            * `COMPLETED` - Payment Completed
+            * `EXPIRED` - Payment Request Expired
+            * `CANCELLED` - Cancelled by Merchant
+            * `FAILED` - Payment Failed
+        expires_in_minutes:
+          type: integer
+          maximum: 10080
+          minimum: 5
+          description: Extend expiration by minutes from now
+    PaymentCancelResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PaymentRequestDetail'
+      required:
+      - data
+      - message
+    PaymentCreateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PaymentRequestDetail'
+      required:
+      - data
+      - message
+    PaymentDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PaymentRequestDetail'
+      required:
+      - data
+    PaymentListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentRequestDetail'
+      required:
+      - count
+      - results
+    PaymentRequestCreateRequest:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+          description: Payment amount in selected currency (or calculated from orders)
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          default: USDC
+          description: |-
+            Payment currency: USDC (Stellar Testnet) or XLM (Native)
+
+            * `USDC` - USD Coin (Stellar Testnet)
+            * `XLM` - Stellar Lumens (Native)
+        order_reference:
+          type: string
+          description: Merchant order reference (auto-generated if omitted)
+          maxLength: 32
+        orders:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Itemized order choices with item name, unit price, quantity,
+            and total
+        title:
+          type: string
+          minLength: 1
+          default: Payment Request
+          description: Short title or invoice identifier
+          maxLength: 255
+        description:
+          type: string
+          default: ''
+          description: Optional description of goods or service
+        customer_name:
+          type: string
+          default: ''
+          description: Customer name (optional)
+        customer_email:
+          type: string
+          format: email
+          nullable: true
+          minLength: 1
+          description: Customer email for receipt (optional)
+        expires_in_minutes:
+          type: integer
+          maximum: 10080
+          minimum: 5
+          default: 60
+          description: Expiration window in minutes (default 60 minutes)
+    PaymentRequestDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        reference_id:
+          type: string
+          readOnly: true
+        order_reference:
+          type: string
+          readOnly: true
+          description: Auto-generated unique merchant order reference
+        orders:
+          readOnly: true
+          description: Itemized order choices with title, unit price, quantity, and
+            subtotal
+        memo:
+          type: string
+          readOnly: true
+          description: Unique Stellar transaction memo for matching
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+          readOnly: true
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          readOnly: true
+        asset_issuer:
+          type: string
+          readOnly: true
+          nullable: true
+        destination_address:
+          type: string
+          readOnly: true
+          description: Merchant's receiving Stellar public key
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        customer_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        sep0007_uri:
+          type: string
+          readOnly: true
+          description: Stellar SEP-0007 pay URI for wallets
+        checkout_url:
+          type: string
+          format: uri
+          readOnly: true
+        qr_code_base64:
+          type: string
+          readOnly: true
+          description: Base64 Data URI PNG for QR code
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+        paid_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        merchant_business_name:
+          type: string
+          readOnly: true
+        is_expired:
+          type: boolean
+          readOnly: true
+      required:
+      - amount
+      - asset_issuer
+      - checkout_url
+      - created_at
+      - currency
+      - customer_email
+      - customer_name
+      - description
+      - destination_address
+      - expires_at
+      - id
+      - is_expired
+      - memo
+      - merchant_business_name
+      - order_reference
+      - orders
+      - paid_at
+      - qr_code_base64
+      - reference_id
+      - sep0007_uri
+      - status
+      - title
+      - updated_at
+    PaymentRequestUpdateRequest:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+          description: Updated payment amount
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          description: |-
+            Updated payment currency: USDC or XLM
+
+            * `USDC` - USD Coin (Stellar Testnet)
+            * `XLM` - Stellar Lumens (Native)
+        order_reference:
+          type: string
+          description: Updated order reference
+          maxLength: 32
+        orders:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Updated list of order choices
+        title:
+          type: string
+          minLength: 1
+          description: Updated title or invoice identifier
+          maxLength: 255
+        description:
+          type: string
+          description: Updated description
+        customer_name:
+          type: string
+          description: Updated customer name
+        customer_email:
+          nullable: true
+          description: Updated customer email
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          description: |-
+            Updated status: PENDING, COMPLETED, EXPIRED, CANCELLED, FAILED
+
+            * `PENDING` - Pending Payment
+            * `COMPLETED` - Payment Completed
+            * `EXPIRED` - Payment Request Expired
+            * `CANCELLED` - Cancelled by Merchant
+            * `FAILED` - Payment Failed
+        expires_in_minutes:
+          type: integer
+          maximum: 10080
+          minimum: 5
+          description: Extend expiration by minutes from now
+    PaymentStatusEnum:
+      enum:
+      - PENDING
+      - COMPLETED
+      - EXPIRED
+      - CANCELLED
+      - FAILED
+      type: string
+      description: |-
+        * `PENDING` - Pending Payment
+        * `COMPLETED` - Payment Completed
+        * `EXPIRED` - Payment Request Expired
+        * `CANCELLED` - Cancelled by Merchant
+        * `FAILED` - Payment Failed
+    PaymentStatusPoll:
+      type: object
+      properties:
+        reference_id:
+          type: string
+        status:
+          type: string
+        is_completed:
+          type: boolean
+        is_expired:
+          type: boolean
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+        currency:
+          type: string
+        tx_hash:
+          type: string
+          nullable: true
+        stellar_expert_url:
+          type: string
+          nullable: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - amount
+      - currency
+      - is_completed
+      - is_expired
+      - paid_at
+      - reference_id
+      - status
+      - stellar_expert_url
+      - tx_hash
+    PaymentStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/PaymentStatusPoll'
+      required:
+      - data
+    PublicCheckout:
+      type: object
+      description: 'Public customer checkout view model: safe customer-facing details.'
+      properties:
+        reference_id:
+          type: string
+          readOnly: true
+        order_reference:
+          type: string
+          readOnly: true
+          description: Auto-generated unique merchant order reference
+        orders:
+          readOnly: true
+          description: Itemized order choices with title, unit price, quantity, and
+            subtotal
+        memo:
+          type: string
+          readOnly: true
+          description: Unique Stellar transaction memo for matching
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+          readOnly: true
+        currency:
+          allOf:
+          - $ref: '#/components/schemas/CurrencyEnum'
+          readOnly: true
+        asset_issuer:
+          type: string
+          readOnly: true
+          nullable: true
+        destination_address:
+          type: string
+          readOnly: true
+          description: Merchant's receiving Stellar public key
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        sep0007_uri:
+          type: string
+          readOnly: true
+          description: Stellar SEP-0007 pay URI for wallets
+        checkout_url:
+          type: string
+          format: uri
+          readOnly: true
+        qr_code_base64:
+          type: string
+          readOnly: true
+          description: Base64 Data URI PNG for QR code
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+        paid_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        merchant_name:
+          type: string
+          readOnly: true
+        merchant_email:
+          type: string
+          format: email
+          readOnly: true
+        merchant_support_email:
+          type: string
+          format: email
+          readOnly: true
+        merchant_description:
+          type: string
+          readOnly: true
+        is_expired:
+          type: boolean
+          readOnly: true
+      required:
+      - amount
+      - asset_issuer
+      - checkout_url
+      - currency
+      - customer_name
+      - description
+      - destination_address
+      - expires_at
+      - is_expired
+      - memo
+      - merchant_description
+      - merchant_email
+      - merchant_name
+      - merchant_support_email
+      - order_reference
+      - orders
+      - paid_at
+      - qr_code_base64
+      - reference_id
+      - sep0007_uri
+      - status
+      - title
+    RecentActivityItem:
+      type: object
+      properties:
+        id:
+          type: string
+        reference_id:
+          type: string
+        title:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+        currency:
+          type: string
+        status:
+          type: string
+        tx_hash:
+          type: string
+          nullable: true
+        stellar_expert_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - amount
+      - created_at
+      - currency
+      - id
+      - paid_at
+      - reference_id
+      - status
+      - stellar_expert_url
+      - title
+      - tx_hash
+    SorobanContractInfo:
+      type: object
+      properties:
+        contract_name:
+          type: string
+        network:
+          type: string
+        contract_id:
+          type: string
+        usdc_token_id:
+          type: string
+        methods:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        evm_contract_available:
+          type: boolean
+        evm_contract_name:
+          type: string
+      required:
+      - contract_id
+      - contract_name
+      - evm_contract_available
+      - evm_contract_name
+      - methods
+      - network
+      - usdc_token_id
+    SorobanPayInvocationRequestRequest:
+      type: object
+      properties:
+        payer_address:
+          type: string
+          minLength: 1
+          description: Customer Stellar public key
+          maxLength: 56
+        reference_id:
+          type: string
+          minLength: 1
+          description: SMEHUB invoice reference ID
+          maxLength: 32
+      required:
+      - payer_address
+      - reference_id
+    SorobanPayInvocationResponse:
+      type: object
+      properties:
+        contract_id:
+          type: string
+        method:
+          type: string
+        args:
+          type: object
+          additionalProperties: {}
+        network_passphrase:
+          type: string
+        memo:
+          type: string
+      required:
+      - args
+      - contract_id
+      - memo
+      - method
+      - network_passphrase
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        reference_id:
+          type: string
+          readOnly: true
+        merchant_business_name:
+          type: string
+          readOnly: true
+        tx_hash:
+          type: string
+          readOnly: true
+          description: 64-character Stellar transaction hash
+        source_account:
+          type: string
+          readOnly: true
+          description: Payer's Stellar account
+        destination_account:
+          type: string
+          readOnly: true
+          description: Merchant's receiving account
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,4})?$
+          readOnly: true
+        asset_code:
+          type: string
+          readOnly: true
+        asset_issuer:
+          type: string
+          readOnly: true
+          nullable: true
+        memo:
+          type: string
+          readOnly: true
+        ledger:
+          type: integer
+          readOnly: true
+          nullable: true
+          description: Stellar ledger sequence number
+        fee_charged:
+          type: integer
+          readOnly: true
+          nullable: true
+          description: Fee paid in stroops
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BlockchainTransactionStatusEnum'
+          readOnly: true
+        stellar_expert_url:
+          type: string
+          format: uri
+          readOnly: true
+        verified_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - asset_code
+      - asset_issuer
+      - created_at
+      - destination_account
+      - fee_charged
+      - id
+      - ledger
+      - memo
+      - merchant_business_name
+      - reference_id
+      - source_account
+      - status
+      - stellar_expert_url
+      - tx_hash
+      - verified_at
+    TransactionBroadcastRequest:
+      type: object
+      properties:
+        signed_xdr:
+          type: string
+          minLength: 10
+          description: Base64-encoded signed Stellar transaction envelope XDR
+      required:
+      - signed_xdr
+    TransactionBroadcastResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        tx_hash:
+          type: string
+        ledger:
+          type: integer
+        data:
+          $ref: '#/components/schemas/Transaction'
+      required:
+      - data
+      - ledger
+      - message
+      - tx_hash
+    TransactionDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/Transaction'
+      required:
+      - data
+    TransactionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+      required:
+      - count
+      - results
+    TransactionPrepareRequest:
+      type: object
+      properties:
+        payer_address:
+          type: string
+          minLength: 56
+          description: Stellar public key of payer account (starts with G, 56 chars)
+          maxLength: 56
+        currency:
+          type: string
+          default: ''
+      required:
+      - payer_address
+    TransactionPrepareResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        xdr:
+          type: string
+        network_passphrase:
+          type: string
+        payer_address:
+          type: string
+        destination_address:
+          type: string
+        amount:
+          type: string
+        currency:
+          type: string
+        used_currency:
+          type: string
+        memo:
+          type: string
+      required:
+      - amount
+      - currency
+      - destination_address
+      - memo
+      - network_passphrase
+      - payer_address
+      - used_currency
+      - xdr
+    TransactionSubmitRequest:
+      type: object
+      properties:
+        tx_hash:
+          type: string
+          minLength: 64
+          description: 64-character hexadecimal Stellar Testnet transaction hash
+          maxLength: 64
+      required:
+      - tx_hash
+    TransactionVerifyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Transaction'
+      required:
+      - data
+      - message
+    WalletConnectResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        wallet:
+          $ref: '#/components/schemas/MerchantWallet'
+      required:
+      - message
+      - wallet
+    WalletLiveInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          $ref: '#/components/schemas/MerchantWalletLiveInfo'
+      required:
+      - data
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
+tags:
+- name: Merchants
+  description: Merchant registration, business profiles, and Stellar wallet integration
+- name: Payments
+  description: Payment request / invoice generation, QR code rendering, SEP-0007 URIs
+- name: Checkout
+  description: Public customer checkout, invoice review, and payment authorization
+- name: Transactions
+  description: Stellar Testnet transaction tracking, blockchain verification, and
+    audit logs
+- name: Analytics
+  description: Merchant dashboard metrics, volume summaries, and payment statuses
+- name: Contracts
+  description: Soroban & EVM Smart Contract routing and parameters

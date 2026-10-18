@@ -1,0 +1,6 @@
+{
+  "name": "SMEHUB",
+  "description": "Non-custodial Stellar USDC payment requests, checkout, and transaction tracking platform for businesses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
